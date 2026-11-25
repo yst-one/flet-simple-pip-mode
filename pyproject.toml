@@ -19,10 +19,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://mydomain.dev"
-Documentation = "https://github.com/MyGithubAccount/flet-simple-pip-mode"
-Repository = "https://github.com/MyGithubAccount/flet-simple-pip-mode"
-Issues = "https://github.com/MyGithubAccount/flet-simple-pip-mode/issues"
+Homepage = "https://github.com/yst-one/flet-simple-pip-mode"
+Documentation = "https://github.com/yst-one/flet-simple-pip-mode#readme"
+Repository = "https://github.com/yst-one/flet-simple-pip-mode"
+Issues = "https://github.com/yst-one/flet-simple-pip-mode/issues"
 
 [tool.setuptools.package-data]
 "flutter.flet_simple_pip_mode" = ["**/*"]

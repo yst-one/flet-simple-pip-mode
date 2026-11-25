@@ -1,0 +1,38 @@
+name: build_whl_update
+
+on:
+  # 允许在 GitHub 网页上手动触发
+  workflow_dispatch:
+  # 打 tag 时自动发布，例如 git tag v0.1.0 && git push --tags
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  my_job:
+    name: build_whl_update
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: 签出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 UV 环境
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: 编译生成 WHL / SDIST 包
+        run: uv build
+
+      - name: 保存编译产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: flet-simple-pip-mode-packages
+          path: dist/
+
+      - name: 发布到 PyPI
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          uv publish --token "$PYPI_TOKEN"
