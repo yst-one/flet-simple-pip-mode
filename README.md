@@ -232,7 +232,9 @@ pip = SimplePipMode(
 
 ### 3. Android 原生配置（关键）
 
-simple_pip_mode 需要在宿主 App 的 Android 工程里做两件事，Flet CLI 没有对应选项：
+这两步对应官方 README 的 [Enabling callbacks](https://pub.dev/packages/simple_pip_mode#enabling-callbacks)
+章节（官方 example 的主 Activity 同样继承了 `PipCallbackHelperActivityWrapper`）。
+Flet CLI 没有对应选项，所以由补丁脚本完成：
 
 1. `<activity>` 添加 `android:supportsPictureInPicture="true"`
 2. `MainActivity` 接入 PiP 回调（否则收不到进入/退出回调）：
