@@ -1,0 +1,20 @@
+{
+  "time": "2026-11-25T11:59:32",
+  "steps": [
+    "起始界面已验证",
+    "点击「进入 PiP」生效（第 2 次）",
+    "退出回调：已捕获",
+    "回调记录区：多行可见"
+  ],
+  "screenshot_start": "D:\\auto_phone\\flet_pip_ex\\examples\\flet_simple_pip_mode_example\\u2_scripts\\验证结果\\01_起始界面.png",
+  "normal_card_visible": true,
+  "service_ready": true,
+  "content_swapped": true,
+  "pip_window_visible": true,
+  "screenshot_pip": "D:\\auto_phone\\flet_pip_ex\\examples\\flet_simple_pip_mode_example\\u2_scripts\\验证结果\\02_画中画.png",
+  "callback_exited": true,
+  "screenshot_exit": "D:\\auto_phone\\flet_pip_ex\\examples\\flet_simple_pip_mode_example\\u2_scripts\\验证结果\\03_退出回调.png",
+  "no_runtime_error": true,
+  "callback_log_visible": true,
+  "passed": true
+}

@@ -1,0 +1,55 @@
+{
+  "time": "2026-11-25T14:14:13",
+  "checks": {
+    "is_pip_available": true,
+    "is_auto_pip_available": true,
+    "aspect_dropdown": true,
+    "layout_dropdown": true,
+    "simulated_player_hidden_for_none": true,
+    "aspect_ratio_options": true,
+    "set_auto_pip_mode": true,
+    "auto_enter_switch": true,
+    "player_visible_for_media": true,
+    "player_visible_for_mediaOnlyPause": true,
+    "player_visible_for_mediaLive": true,
+    "player_visible_for_mediaWithSeek10": true,
+    "pip_actions_layouts": true,
+    "set_is_playing": true,
+    "enter_pip": true,
+    "pip_window": true,
+    "exit_pip": true,
+    "callback_exited": true,
+    "callback_log": true
+  },
+  "steps": [
+    "起始界面已就绪",
+    "宽高比选项: ['1:1', '2:3', '3:2', '16:9', '9:16']",
+    "Auto Enter 开关已切换",
+    "动作布局: {'media': True, 'mediaOnlyPause': True, 'mediaLive': True, 'mediaWithSeek10': True, 'none': True}",
+    "模拟播放器已切换到暂停",
+    "PiP 已进入（耗时 1.61s，旧版固定等 2s），间隔截取两张图用于观察随机数",
+    "退出 PiP 并读取回调日志"
+  ],
+  "screenshot_start": "D:\\auto_phone\\flet_pip_ex\\examples\\flet_simple_pip_mode_example\\u2_scripts\\验证结果\\全功能_01_起始界面.png",
+  "aspect_ratio_options_found": [
+    "1:1",
+    "2:3",
+    "3:2",
+    "16:9",
+    "9:16"
+  ],
+  "layout_results": {
+    "media": true,
+    "mediaOnlyPause": true,
+    "mediaLive": true,
+    "mediaWithSeek10": true,
+    "none": true
+  },
+  "enter_pip_elapsed_sec": 1.61,
+  "screenshot_pip_a": "D:\\auto_phone\\flet_pip_ex\\examples\\flet_simple_pip_mode_example\\u2_scripts\\验证结果\\全功能_02_PiP_A.png",
+  "screenshot_pip_b": "D:\\auto_phone\\flet_pip_ex\\examples\\flet_simple_pip_mode_example\\u2_scripts\\验证结果\\全功能_03_PiP_B.png",
+  "no_runtime_error": true,
+  "manual_action_hint": "请在 PiP 悬浮窗点一下播放/暂停/下一个等动作按钮，然后回到 App 查看「回调：PiP 动作 …」日志。",
+  "screenshot_exit": "D:\\auto_phone\\flet_pip_ex\\examples\\flet_simple_pip_mode_example\\u2_scripts\\验证结果\\全功能_04_退出回调.png",
+  "passed": true
+}

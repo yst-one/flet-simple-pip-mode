@@ -1,0 +1,30 @@
+# ---- Python 生成物 ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+dist/
+*.whl
+
+# ---- Flet / Flutter / Android 构建产物（体积大，可由源码重建）----
+build/
+*.apk
+*.aab
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+
+# ---- 本地 IDE / 系统 ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- WorkBuddy 会话数据（非交付物）----
+.workbuddy/
