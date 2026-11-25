@@ -63,24 +63,85 @@ dependencies = [
 
 ### 2. 写 UI
 
-```python
-import asyncio
-import flet as ft
-from flet_simple_pip_mode import PipWidget, SimplePipMode
+下面是一份**完整可运行的 `src/main.py`**，直接复制即可，不需要再补任何类。
+分四部分：状态中枢 `StatusHub` → 声明式组件 → 服务与回调 → 入口。
 
+```python
+import flet as ft
+
+from flet_simple_pip_mode import PipAction, PipWidget, SimplePipMode
+
+
+# ── ① StatusHub：把「服务回调」桥接进「声明式组件」 ─────────────────
+class StatusHub:
+    """Flet 1.1.x 的 @ft.component 只能读 use_state 的状态，
+    而 SimplePipMode 的事件回调来自 Dart 侧，发生在组件树之外。
+    用一个可订阅的普通对象持有状态，组件订阅后把值写进 set_xxx，
+    外部回调才能真正驱动 UI 重绘。
+    """
+
+    MAX_LOGS = 10  # 事件记录保留条数，最新在最上面
+
+    def __init__(self) -> None:
+        self.in_pip = False        # 驱动 PipWidget.active
+        self.value = "等待操作"    # 状态行（最新一条）
+        self.logs = [self.value]   # 多行事件记录
+        self._listeners = []       # 组件注册的订阅者
+
+    def subscribe(self, listener):
+        """返回取消订阅函数，交给 use_effect 在卸载时调用。"""
+        self._listeners.append(listener)
+        return lambda: self._listeners.remove(listener)
+
+    def _record(self, value: str) -> None:
+        self.value = value
+        self.logs = [value] + self.logs[: self.MAX_LOGS - 1]  # 重建 list
+
+    def set(self, value: str) -> None:
+        """只记一条日志，不改变 PiP 状态。"""
+        self._record(value)
+        self._notify()
+
+    def set_pip(self, active: bool, value: str | None = None) -> None:
+        """切换 PiP 状态；value 非空时顺带记一条日志。"""
+        self.in_pip = active
+        if value is not None:
+            self._record(value)
+        self._notify()
+
+    def _notify(self) -> None:
+        for listener in list(self._listeners):  # 副本遍历，防止回调里退订
+            listener(self)
+
+
+# ── ② 声明式组件：用 use_state 镜像 hub 的状态 ──────────────────────
 @ft.component
 def App(page: ft.Page, pip: SimplePipMode, hub: StatusHub):
     in_pip, set_in_pip = ft.use_state(hub.in_pip)
+    status, set_status = ft.use_state(hub.value)
+    logs, set_logs = ft.use_state(hub.logs)
+
+    def mount():
+        def on_hub(h):
+            set_in_pip(h.in_pip)
+            set_status(h.value)
+            set_logs(list(h.logs))  # 必须传新列表，否则 Flet 判定未变化、不重绘
+
+        unsubscribe = hub.subscribe(on_hub)
+        return unsubscribe          # use_effect 会把它当作卸载时的清理函数
+
+    ft.use_effect(mount, [])        # 空依赖：只挂载一次
 
     async def enter_pip():
-        # 先切到 pip_child 并立即推送；扩展会在内部等一帧画完后才进 PiP，
-        # 无需在 Python 侧 sleep。系统截取的首帧就是 pip_child。
+        # 先切到 pip_child 并立即推送 patch；扩展内部会用
+        # addPostFrameCallback 等这一帧画完再请求系统 PiP，
+        # 所以这里不需要 asyncio.sleep(...)。
         hub.set_pip(True, "切换内容：画中画布局")
         page.update()
         await pip.enter_pip_mode(aspect_ratio=(16, 9))
 
     def on_enter():
-        # Flet 1.1.x：run_task 传协程函数，不要传协程对象；事件处理器不收参数。
+        # Flet 1.1.x：run_task 只接收协程函数；不能传协程对象，也不能包 lambda。
         page.run_task(enter_pip)
 
     pip_view = PipWidget(
@@ -98,24 +159,68 @@ def App(page: ft.Page, pip: SimplePipMode, hub: StatusHub):
         ),
     )
 
-    # PiP 期间只保留 pip_child，避免系统把旧表头 / 按钮截图当成画中画内容。
+    # PiP 期间只保留 pip_child，避免系统把旧表头 / 按钮截成悬浮窗内容。
     if in_pip:
         return ft.SafeArea(expand=True, content=pip_view)
 
-    return ft.Column(controls=[ft.Button(content="进入 PiP", on_click=on_enter), pip_view])
+    return ft.Column(
+        expand=True,
+        controls=[
+            ft.Button(content="进入 PiP", on_click=on_enter),
+            ft.Text(f"状态：{status}"),
+            ft.Text("事件记录：\n" + "\n".join(logs)),
+            pip_view,
+        ],
+    )
 
+
+# ── ③ 服务与回调：所有外部事件统一写回 hub ──────────────────────────
 def main(page: ft.Page):
     hub = StatusHub()
     pip = SimplePipMode(
         on_pip_entered=lambda e: hub.set_pip(True, "回调：已进入 PiP"),
         on_pip_exited=lambda e: hub.set_pip(False, "回调：已退出 PiP"),
+        on_pip_action=lambda e: hub.set(f"回调：PiP 动作 {e.action.value}"),
     )
     page.render(lambda: App(page, pip, hub))
 
-ft.run(main)
+
+# ── ④ 入口 ───────────────────────────────────────────────────────
+if __name__ == "__main__":
+    ft.run(main)
 ```
 
-服务回调示例：
+> 完整版（能力检测、5 种宽高比、动作布局、播放器、实时随机数）见
+> `examples/flet_simple_pip_mode_example/src/main.py`，里面用的是同一个东西，
+> 只是叫 `ExampleHub`，并多了几个状态字段。
+
+#### 为什么必须要有 `StatusHub`
+
+| 问题 | 说明 |
+|------|------|
+| 回调在哪触发 | `on_pip_entered` / `on_pip_exited` / `on_pip_action` 来自 Dart 侧事件，发生在 `@ft.component` 组件树**之外** |
+| 直接改变量行不行 | 不行。组件只认 `ft.use_state` 返回的 `set_xxx`，普通属性变化不会触发重绘 |
+| hub 干什么 | 持有状态 + 提供 `subscribe()`；组件在 `use_effect` 里订阅，通知到达时把值逐个写进 `set_xxx` |
+| 为什么还要多行日志 | PiP 期间回调发生在后台窗口，`print` 回 App 后根本看不到；写进 UI 记录区才能事后查验 |
+
+#### 四个容易踩的点
+
+1. `ft.use_state(hub.in_pip)` 取的是**初始值**，后续更新全靠 `set_in_pip(...)`；别指望 hub 属性变了 UI 会自己跟上。
+2. `set_logs(...)` 必须传**新列表**（`StatusHub._record` 每次重建 `self.logs` 就是这个原因），传同一个 list 引用 Flet 会判定未变化。
+3. `ft.use_effect(mount, [])` 的空依赖数组表示只挂载一次；`mount` 返回的函数会在组件卸载时自动执行，用来退订，避免重复订阅。
+4. `page.update()` 把 `active=True` 的 patch 立刻推到 Dart；扩展内部会等 `pip_child` 画完一帧才进 PiP，**不要**在 Python 侧加 `asyncio.sleep(2.0)` 之类的固定等待。
+
+#### 回调签名
+
+`e` 是具名事件对象，handler 不需要额外参数：
+
+| 回调 | 事件类型 / 字段 | 典型用途 |
+|------|-----------------|----------|
+| `on_pip_entered(e)` | `PipStateEvent.active`（`True`） | 切到 `pip_child` |
+| `on_pip_exited(e)` | `PipStateEvent.active`（`False`） | 切回主界面 |
+| `on_pip_action(e)` | `PipActionEvent.action: PipAction` | `e.action.value` 取 `play/pause/...` |
+
+只想在控制台看事件时可以简化成 `print`，但**真机上 PiP 内的回调看不到输出**，所以调试也建议写进 UI：
 
 ```python
 pip = SimplePipMode(
@@ -124,28 +229,6 @@ pip = SimplePipMode(
     on_pip_action=lambda e: print("动作：", e.action.value),
 )
 ```
-
-回调发生在 PiP 窗口里时，回到全屏后只靠 `print` / 单行状态是看不到的。推荐像示例
-`src/main.py` 那样把回调写进**独立的多行记录区**（`StatusHub.logs` + `ft.Text("\n".join(logs))`），
-事件按时间倒序保留最近 10 条，返回 App 后可直接查看：
-
-```python
-class StatusHub:
-    def set(self, value: str) -> None:
-        self.value = value
-        self.logs = [value] + self.logs[:9]   # 最新在最上面
-        self._notify()
-
-    def set_pip(self, active: bool, value: str | None = None) -> None:
-        self.in_pip = active                 # 驱动 PipWidget.active
-        if value is not None:
-            self.set(value)
-        else:
-            self._notify()
-```
-
-`on_pip_entered` / `on_pip_exited` 接到 `hub.set_pip(True/False, "回调：...")`；状态行显示最新一条，
-事件记录区显示完整历史。
 
 ### 3. Android 原生配置（关键）
 
