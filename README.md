@@ -44,15 +44,22 @@ examples/flet_simple_pip_mode_example/
 
 ### 1. 添加依赖
 
-在 App 的 `pyproject.toml` 中（本地路径 / Git / PyPI 三选一）：
+在 App 的 `pyproject.toml` 中（PyPI / 本地路径 二选一）：
 
 ```toml
 [project]
 dependencies = [
-  "flet-simple-pip-mode @ file:///D:/auto_phone/flet_pip_ex",
+  # 方式 A：从 PyPI 安装（已发布 0.1.0）
+  "flet-simple-pip-mode>=0.1.0",
+  # 方式 B：本地开发用路径依赖（与 A 二选一）
+  # "flet-simple-pip-mode @ file:///D:/auto_phone/flet_pip_ex",
   "flet>=1.1.3",
 ]
 ```
+
+> 已发布到 [PyPI](https://pypi.org/project/flet-simple-pip-mode/)。国内镜像源可能同步滞后，
+> 装不到时可用官方源：`pip install --index-url https://pypi.org/simple flet-simple-pip-mode`。
+> 发布走 `.github/workflows/publish.yml`：打 `v*` tag 或网页手动触发，token 取仓库 Secret `PYPI_API_TOKEN`。
 
 ### 2. 写 UI
 
